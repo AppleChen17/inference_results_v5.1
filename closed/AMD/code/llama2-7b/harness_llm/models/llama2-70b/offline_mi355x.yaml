@@ -1,0 +1,85 @@
+# benchmark details
+benchmark_name: llama2-70b
+scenario: offline
+test_mode: performance
+engine_version: sync
+
+vllm_env_config:
+  VLLM_LOGGING_LEVEL: "ERROR"
+  HARNESS_GC_LIMIT: 100000
+  TOKENIZERS_PARALLELISM: False
+  VLLM_INSTALL_PUNICA_KERNELS: 1
+  VLLM_USE_V1: 0
+  VLLM_TRITON_FP4_GEMM_USE_ASM: 1
+  VLLM_TRITON_FP4_GEMM_SPLITK_USE_BF16: 0
+  TRITON_HIP_ASYNC_COPY_BYPASS_PERMUTE: 1
+  AMDGCN_USE_BUFFER_OPS: 1
+  TRITON_HIP_USE_ASYNC_COPY: 1 
+  TRITON_HIP_USE_BLOCK_PINGPONG: 1 
+  TRITON_HIP_ASYNC_FAST_SWIZZLE: 1 
+  TRITON_HIP_PRESHUFFLE_SCALES: 1 
+  VLLM_ROCM_USE_AITER: 1
+  VLLM_ROCM_USE_AITER_PAGED_ATTN: 1
+  VLLM_ROCM_USE_AITER_RMSNORM: 1
+  VLLM_USE_TRITON_FLASH_ATTN: 1 
+  VLLM_USE_AITER_TRITON_ROPE: 1 
+  VLLM_USE_AITER_TRITON_SILU_MUL: 1 
+  VLLM_TRITON_FP4_GEMM_BPRESHUFFLE: 1
+  VLLM_LLAMA2_MLPERF_SCHED: 1
+  VLLM_LLAMA2_MLPERF_MAX_TARGET_DECODE_BATCH: 3072
+  VLLM_LLAMA2_MLPERF_MIN_TARGET_DECODE_BATCH: 3072
+  VLLM_LLAMA2_MLPERF_STEP_DECODE_BATCH: 256
+  HARNESS_PRELOAD_AITER_KERNELS: 1
+
+sglang_engine_config:
+  model_path: /model/llama2-70b-chat-hf/fp8_quantized
+  max_prefill_tokens: 70000
+  max_running_requests: 2560
+  schedule_conservativeness: 0.2
+  mem_fraction_static: 0.95
+  num_continuous_decode_steps: 10
+
+sglang_sampling_config:
+  max_new_tokens: 1024
+
+# configuration related to the LLM model.
+vllm_engine_config:
+  model: /model/Llama-2-70b-chat-hf-WMXFP4-AMXFP4-KVFP8-Scale-UINT8-MLPerf-GPTQ/
+  tensor_parallel_size: 1
+  num_scheduler_steps: 19
+  quantization: quark
+  max_model_len: 2048
+  swap_space: 0
+  gpu_memory_utilization: 0.93
+  max_seq_len_to_capture: 2048
+  enforce_eager: False
+  disable_custom_all_reduce: True
+  max_num_batched_tokens: 40960
+  max_num_seqs: 3450
+  enable_chunked_prefill: False
+  block_size: 16
+  kv_cache_dtype: fp8
+  enable_prefix_caching: False
+  disable_log_stats: False
+  dtype: bfloat16
+
+
+# configuration related to the sampling params
+vllm_sampling_config:
+  temperature: 0.0
+  min_tokens: 1
+  max_tokens: 1024
+  ignore_eos: False
+  detokenize: False
+
+# configuration related to the harness tests.
+harness_config:
+  dataset_path: /data/open_orca/open_orca_gpt4_tokenized_llama.sampled_24576.pkl
+  mlperf_conf_path: /app/mlperf_inference/mlperf.conf
+  user_conf_path: /lab-mlperf-inference/code/user_mi355x.conf
+  target_qps: -1 # 80
+  total_sample_count: 24576
+  output_log_dir: /app/logs
+  enable_log_trace: False
+  enable_warmup: True
+  device_count: 8

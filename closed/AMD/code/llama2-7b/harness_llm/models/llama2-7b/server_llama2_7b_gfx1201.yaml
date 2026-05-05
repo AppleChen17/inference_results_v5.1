@@ -1,0 +1,92 @@
+# benchmark details
+benchmark_name: llama2-70b
+scenario: server
+test_mode: performance
+engine_version: sync
+backend: vllm
+
+vllm_env_config:
+  # debug 階段先開 INFO，確認 vLLM backend / memory profiling / KV cache 狀態
+  VLLM_LOGGING_LEVEL: "INFO"
+
+  # 跟 standalone vLLM 成功案例一致：使用 V0 engine
+  VLLM_USE_V1: "0"
+
+  # AMD/gfx1201 上通常會 fallback 到 ROCmFlashAttention；保留你 offline 已跑通的設定
+  VLLM_ATTENTION_BACKEND: "XFORMERS"
+
+  # 避免 Server mode worker ready / long run 時 timeout 太早
+  VLLM_ENGINE_ITERATION_TIMEOUT_S: 36000
+
+  # Server mode 需要較穩定的 decode pacing；先用小 batch 跑通，再逐步往上掃
+  HARNESS_GC_LIMIT: 10000000
+  VLLM_LLAMA2_MLPERF_SCHED: 1
+  VLLM_LLAMA2_MLPERF_MAX_TARGET_DECODE_BATCH: 32
+  VLLM_LLAMA2_MLPERF_MIN_TARGET_DECODE_BATCH: 8
+  VLLM_LLAMA2_MLPERF_STEP_DECODE_BATCH: 8
+  VLLM_LLAMA2_MLPERF_MIN_REQUIRE_PREFILL_GPU_BLOCK: 0
+  VLLM_LLAMA2_MLPERF_MIN_REQUIRE_PREFILL_QUERY: 1
+
+vllm_engine_config:
+  # gfx1201 / R9700 單卡 debug 版：先跑 llama2-7b fp16，不要沿用 MI325X 的 70B fp8 設定
+  model: /model/llama2-7b-chat-hf/orig
+  dtype: float16
+  quantization: null
+  kv_cache_dtype: auto
+
+  tensor_parallel_size: 1
+  pipeline_parallel_size: 1
+
+  # Server mode 不追求一次吞最大 batch；先降低 scheduler steps，讓 request latency 穩定
+  num_scheduler_steps: 1
+
+  # 32GB gfx1201 保守值；若 log 顯示 KV cache 很充足，可逐步升到 0.75 / 0.80
+  gpu_memory_utilization: 0.70
+  max_model_len: 2048
+  max_seq_len_to_capture: 2048
+
+  # vLLM 要求 max_num_batched_tokens >= max_model_len；Server 先不要設太大，避免 prefill 把 decode 卡住
+  max_num_batched_tokens: 2048
+
+  # Server Poisson arrival 下，max_num_seqs 會影響排隊深度與 tail latency；先小值 smoke test
+  max_num_seqs: 8
+
+  enforce_eager: True
+  disable_custom_all_reduce: True
+  swap_space: 0
+  block_size: 32
+
+  enable_chunked_prefill: False
+  enable_prefix_caching: False
+  disable_log_stats: True
+
+vllm_sampling_config:
+  temperature: 0.0
+  min_tokens: 1
+  max_tokens: 1024
+  ignore_eos: False
+  detokenize: False
+
+harness_config:
+  dataset_path: /data/processed-openorca/open_orca_gpt4_tokenized_llama.sampled_24576.pkl
+  mlperf_conf_path: /app/mlperf_inference/mlperf.conf
+  user_conf_path: /lab-mlperf-inference/code/llama2-70b-99/user_llama2_7b.conf
+
+  # 第一次先讓 config/user_conf 控制或用 harness 自動流程；正式 Server 要改成你 sweep 出來能 VALID 的 QPS
+  target_qps: -1
+
+  # debug 先跑小樣本；正式/完整測試再改回 24576，且通常要滿足 min duration
+  total_sample_count: 128
+
+  output_log_dir: /lab-mlperf-inference/results/llama2-7b/Server/performance/debug_1
+
+  enable_log_trace: True
+  enable_warmup: False
+  device_count: 1
+
+  # 明確保持單卡，不吃 common default 裡其他 parallelism 設定
+  tensor_parallelism: 1
+  pipeline_parallelism: 0
+
+  # 單卡先不要開外層 batcher / load balance，避免 Server latency 多一層變因
+  enable_batcher: False

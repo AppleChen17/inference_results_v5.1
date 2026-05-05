@@ -1,0 +1,72 @@
+benchmark_name: llama2-70b
+scenario: offline
+test_mode: performance
+engine_version: sync
+backend: vllm 
+
+vllm_env_config:
+  VLLM_LOGGING_LEVEL: "INFO"
+
+  VLLM_USE_V1: "0"
+
+  VLLM_ATTENTION_BACKEND: "ROCmFlashAttention"
+
+  VLLM_ENGINE_ITERATION_TIMEOUT_S: 36000
+
+vllm_engine_config:
+  # 7B fp16 model
+  model: /model/llama2-7b-chat-hf/orig
+  dtype: float16
+  quantization: null
+
+  kv_cache_dtype: auto
+
+  tensor_parallel_size: 1
+  pipeline_parallel_size: 1
+  num_scheduler_steps: 1
+
+  gpu_memory_utilization: 0.70
+  max_model_len: 2048
+
+  max_seq_len_to_capture: 2048
+
+  max_num_batched_tokens: 2048
+
+  max_num_seqs: 8
+
+  enforce_eager: True
+  disable_custom_all_reduce: True
+
+  swap_space: 0
+  block_size: 32
+
+  enable_chunked_prefill: False
+  enable_prefix_caching: False
+  disable_log_stats: True
+
+vllm_sampling_config:
+  temperature: 0.0
+  min_tokens: 1
+  max_tokens: 1024
+  ignore_eos: False
+  detokenize: False
+
+harness_config:
+  dataset_path: /data/processed-openorca/open_orca_gpt4_tokenized_llama.sampled_24576.pkl
+  mlperf_conf_path: /app/mlperf_inference/mlperf.conf
+  user_conf_path: /lab-mlperf-inference/code/llama2-7b/user_llama2_7b.conf
+
+  target_qps: -1
+
+  total_sample_count: 128
+
+  output_log_dir: /lab-mlperf-inference/results/llama2-7b/Offline/performance/output
+
+  enable_log_trace: True
+  enable_warmup: False
+  device_count: 1
+
+  tensor_parallelism: 1
+  pipeline_parallelism: 0
+
+  enable_batcher: False

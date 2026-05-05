@@ -1,0 +1,65 @@
+# benchmark details
+benchmark_name: llama2-70b
+scenario: server
+test_mode: performance
+engine_version: sync
+
+vllm_env_config:
+  VLLM_LOGGING_LEVEL: "ERROR"
+  HARNESS_GC_LIMIT: 10000000
+  VLLM_LLAMA2_MLPERF_SCHED: 1
+  VLLM_LLAMA2_MLPERF_MAX_TARGET_DECODE_BATCH: 832
+  VLLM_LLAMA2_MLPERF_MIN_TARGET_DECODE_BATCH: 512
+  VLLM_LLAMA2_MLPERF_STEP_DECODE_BATCH: 16
+  VLLM_LLAMA2_MLPERF_MIN_REQUIRE_PREFILL_QUERY: 10
+  HIPBLASLT_TUNING_OVERRIDE_FILE: /lab-mlperf-inference/code/scripts/llama2-mi325x-server-tuning.txt
+  VLLM_MLPERF_SWIZZLE_FP8_LINEAR: 1
+
+sglang_engine_config:
+  model_path: /model/llama2-70b-chat-hf/fp8_quantized
+  max_prefill_tokens: 70000
+  max_running_requests: 2560
+  schedule_conservativeness: 0.3
+  mem_fraction_static: 0.95
+  num_continuous_decode_steps: 10
+
+sglang_sampling_config:
+  max_new_tokens: 1024
+
+# configuration related to the LLM model.
+vllm_engine_config:
+  model: /model/llama2-70b-chat-hf/fp8_quantized
+  tensor_parallel_size: 1
+  num_scheduler_steps: 9
+  quantization: fp8
+  max_model_len: 2048
+  swap_space: 0
+  gpu_memory_utilization: 1.0
+  max_seq_len_to_capture: 1
+  enforce_eager: True
+  disable_custom_all_reduce: True
+  max_num_batched_tokens: 40960
+  max_num_seqs: 1024
+  enable_chunked_prefill: False
+  block_size: 32
+  enable_prefix_caching: False
+
+# configuration related to the sampling params
+vllm_sampling_config:
+  temperature: 0.0
+  min_tokens: 1
+  max_tokens: 1024
+  ignore_eos: False
+  detokenize: False
+
+# configuration related to the harness tests.
+harness_config:
+  dataset_path: /data/processed-openorca/open_orca_gpt4_tokenized_llama.sampled_24576.pkl
+  mlperf_conf_path: /app/mlperf_inference/mlperf.conf
+  user_conf_path: /lab-mlperf-inference/code/user_mi325x.conf
+  target_qps: -1 # 70
+  total_sample_count: 24576
+  output_log_dir: /app/logs
+  enable_log_trace: False
+  enable_warmup: True
+  device_count: 8

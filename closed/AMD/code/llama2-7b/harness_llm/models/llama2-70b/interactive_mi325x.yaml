@@ -1,0 +1,70 @@
+# benchmark details
+benchmark_name: llama2-70b-interactive
+scenario: server
+test_mode: performance
+engine_version: async
+
+vllm_env_config:
+  VLLM_LOGGING_LEVEL: "ERROR"
+  HARNESS_GC_LIMIT: 100000
+  HIPBLASLT_TUNING_OVERRIDE_FILE: /lab-mlperf-inference/code/scripts/gemm_llama2-70b/aa0bda7b/tuning_spx_1700_formatted.txt
+  VLLM_USE_V1: 1
+  VLLM_V1_USE_PREFILL_DECODE_ATTENTION: 1
+  VLLM_LLAMA2_MLPERF_SCHED: 1
+  VLLM_LLAMA2_MLPERF_MAX_TARGET_DECODE_BATCH: 2048
+  VLLM_LLAMA2_MLPERF_MIN_TARGET_DECODE_BATCH: 96
+  VLLM_LLAMA2_MLPERF_STEP_DECODE_BATCH: 8
+  VLLM_LLAMA2_MLPERF_MIN_REQUIRE_PREFILL_QUERY: 1
+
+sglang_engine_config:
+  model_path: /model/llama2-70b-chat-hf/fp8_quantized
+  max_prefill_tokens: 70000
+  max_running_requests: 2560
+  schedule_conservativeness: 0.3
+  mem_fraction_static: 0.95
+  num_continuous_decode_steps: 10
+  schedule_policy: fcfs
+
+sglang_sampling_config:
+  max_new_tokens: 1024
+
+# configuration related to the LLM model.
+vllm_engine_config:
+  model: /model/llama2-70b-chat-hf/fp8_quantized
+  tensor_parallel_size: 1
+  num_scheduler_steps: 1
+  quantization: fp8
+  max_model_len: 2048
+  swap_space: 0
+  gpu_memory_utilization: 1.0
+  max_seq_len_to_capture: 2048
+  enforce_eager: True
+  disable_custom_all_reduce: True
+  max_num_batched_tokens: 43008
+  max_num_seqs: 3840
+  enable_chunked_prefill: True
+  block_size: 16
+  enable_prefix_caching: False
+
+# configuration related to the sampling params
+vllm_sampling_config:
+  temperature: 0.0
+  min_tokens: 1
+  max_tokens: 1024
+  ignore_eos: False
+  detokenize: False
+
+# configuration related to the harness tests.
+harness_config:
+  dataset_path: /data/processed-openorca/open_orca_gpt4_tokenized_llama.sampled_24576.pkl
+  mlperf_conf_path: /app/mlperf_inference/mlperf.conf
+  user_conf_path: /lab-mlperf-inference/code/user_mi325x.conf
+  target_qps: -1 #
+  total_sample_count: 24576
+  output_log_dir: /app/logs
+  enable_log_trace: False
+  device_count: 8
+  enable_warmup: True
+  schedule_algo: shortest_queue_with_tokens
+  load_balance_token_weight: 0.009
+  load_balance_window_size: 12

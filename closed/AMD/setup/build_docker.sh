@@ -162,7 +162,7 @@ if [[ -z "$ARCH" ]]; then
   ARCH=$(rocminfo | grep "Name:" | grep "gfx" | awk 'NR==1' | awk '{print $2}')
 fi
 
-if [[ "$ARCH" != "gfx942" && "$ARCH" != "gfx950" ]]; then
+if [[ "$ARCH" != "gfx942" && "$ARCH" != "gfx950" && "$ARCH" != "gfx1201" ]]; then
   error_exit "Error: unsupported arch=$ARCH (supported: gfx942,gfx950)"
 fi
 
@@ -191,7 +191,7 @@ RELEASE_TAG=${BASE_IMAGE_NAME##*:}
 MLPERF_IMAGE_NAME="rocm/mlperf-inference:${RELEASE_TAG}-mlperf"
 
 INSTALL_TORCHAO=0
-if [ -n "$CUSTOM_LLAMA2_PATCHES" ] && [ "$ARCH" == "gfx942" ]; then
+if [ -n "$CUSTOM_LLAMA2_PATCHES" ] && [ "$ARCH" == "gfx942" ] || [ "$ARCH" == "gfx1201" ]; then
     INSTALL_TORCHAO=1
 fi
 # Create base mlperf docker image

@@ -1,0 +1,73 @@
+# benchmark details
+benchmark_name: llama2-70b
+scenario: server
+test_mode: performance
+engine_version: sync
+
+vllm_env_config:
+  VLLM_LOGGING_LEVEL: "ERROR"
+  HARNESS_GC_LIMIT: 10000000
+  VLLM_USE_V1: 0
+  VLLM_USE_TRITON_FLASH_ATTN: 1
+  VLLM_USE_AITER_TRITON_ROPE: 1
+  VLLM_USE_AITER_TRITON_SILU_MUL: 1
+  VLLM_TRITON_FP4_GEMM_USE_ASM: 1
+  VLLM_TRITON_FP4_GEMM_SPLITK_USE_BF16: 0
+  TRITON_HIP_ASYNC_COPY_BYPASS_PERMUTE: 1
+  AMDGCN_USE_BUFFER_OPS: 1
+  TRITON_HIP_USE_ASYNC_COPY: 1
+  TRITON_HIP_USE_BLOCK_PINGPONG: 1
+  TRITON_HIP_ASYNC_FAST_SWIZZLE: 1
+  TRITON_HIP_PRESHUFFLE_SCALES: 1
+  VLLM_ROCM_USE_AITER: 1
+  VLLM_ROCM_USE_AITER_PAGED_ATTN: 1
+  VLLM_ROCM_USE_AITER_RMSNORM: 1
+  VLLM_TRITON_FP4_GEMM_BPRESHUFFLE: 1
+  VLLM_ROCM_USE_SKINNY_GEMM: 0
+  VLLM_LLAMA2_MLPERF_SCHED: 1
+  VLLM_LLAMA2_MLPERF_MAX_TARGET_DECODE_BATCH: 3072
+  VLLM_LLAMA2_MLPERF_MIN_TARGET_DECODE_BATCH: 1536
+  VLLM_LLAMA2_MLPERF_STEP_DECODE_BATCH: 128
+  VLLM_LLAMA2_MLPERF_MIN_REQUIRE_PREFILL_QUERY: 8
+  HARNESS_PRELOAD_AITER_KERNELS: 1
+
+# configuration related to the LLM model.
+vllm_engine_config:
+  model: /model/llama2-70b-chat-hf/fp4_quantized
+  tensor_parallel_size: 1
+  num_scheduler_steps: 9
+  quantization: quark
+  max_model_len: 2048
+  swap_space: 0
+  gpu_memory_utilization: 0.92
+  max_seq_len_to_capture: 2048
+  enforce_eager: False
+  disable_custom_all_reduce: True
+  max_num_batched_tokens: 40960
+  max_num_seqs: 2048
+  enable_chunked_prefill: False
+  block_size: 16
+  kv_cache_dtype: fp8
+  enable_prefix_caching: False
+  disable_log_stats: False
+  dtype: bfloat16
+
+# configuration related to the sampling params
+vllm_sampling_config:
+  temperature: 0.0
+  min_tokens: 1
+  max_tokens: 1024
+  ignore_eos: False
+  detokenize: False
+
+# configuration related to the harness tests.
+harness_config:
+  dataset_path: /data/processed-openorca/open_orca_gpt4_tokenized_llama.sampled_24576.pkl
+  mlperf_conf_path: /app/mlperf_inference/mlperf.conf
+  user_conf_path: /lab-mlperf-inference/code/user_mi355x.conf
+  target_qps: -1 # 70
+  total_sample_count: 24576
+  output_log_dir: /app/logs
+  enable_log_trace: False
+  enable_warmup: True
+  device_count: 8

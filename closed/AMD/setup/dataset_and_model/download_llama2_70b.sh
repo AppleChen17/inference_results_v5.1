@@ -2,7 +2,8 @@
 export OPENORCA_PARQUET="open_orca_dataset.parquet"
 export DOWNLOAD_DIR="/data/openorca-dataset"
 export EXPORT_DIR="/data/processed-openorca"
-export MODEL_PATH="/model/llama2-70b-chat-hf/orig"
+# export MODEL_PATH="/model/llama2-70b-chat-hf/orig"
+export MODEL_PATH="/model/llama2-7b-chat-hf/orig"
 export DATASET_PATH="${DOWNLOAD_DIR}/${OPENORCA_PARQUET}"
 
 # Process the dataset according the Taskforce's agreed criteria
