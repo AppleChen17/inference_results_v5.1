@@ -49,29 +49,29 @@ To boost the machine's performance further, execute the following script before 
 bash setup/runtime_tunables.sh
 ```
 
-### Docker
+### Appatainer
 
-Set the docker image name for the benchmark.
+Set the image name for the benchmark.
 
 ```bash
 export MLPERF_IMAGE_NAME=<your_rocm_mlperf_inference_image>
 ```
 
-Build the docker image for the benchmark by running:
+Build the image for the benchmark by running:
 
 ```bash
-bash setup/build_submission_llama2_70b.sh $MLPERF_IMAGE_NAME
+bash setup/build_submission_llama2_7b_apptainer.sh $MLPERF_IMAGE_NAME
 ```
 
-Start the docker container for the benchmark by running:
+Start the container for the benchmark by running:
 
 ```bash
-bash setup/start_submission_env.sh $MLPERF_IMAGE_NAME
+bash setup/start_submission_apptainer_env.sh $MLPERF_IMAGE_NAME
 ```
 
 ### Running the benchmark
 
-Run the benchmark commands inside the Docker container.
+Run the benchmark commands inside the container.
 
 For this task, only 1 GPU may be used for the submitted result. Therefore, please make sure the benchmark is executed with a single GPU with the setting of `harness_config.device_count = 1`.( This is also set by "DO NOT MODIFY" config in `offline_llama2_7b_gfx1201.yaml` )
 
