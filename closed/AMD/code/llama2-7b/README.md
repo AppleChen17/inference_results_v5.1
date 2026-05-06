@@ -60,7 +60,7 @@ export MLPERF_IMAGE_NAME=<your_rocm_mlperf_inference_image>
 Build the docker image for the benchmark by running:
 
 ```bash
-bash setup/build_submission_llama2_7b.sh $MLPERF_IMAGE_NAME
+bash setup/build_submission_llama2_70b.sh $MLPERF_IMAGE_NAME
 ```
 
 Start the docker container for the benchmark by running:
@@ -71,16 +71,11 @@ bash setup/start_submission_env.sh $MLPERF_IMAGE_NAME
 
 ### Running the benchmark
 
-Run the following commands inside the docker container.
+Run the benchmark commands inside the Docker container.
 
-Before running the benchmark, you could select the visible GPU devices:
+For this task, only 1 GPU may be used for the submitted result. Therefore, please make sure the benchmark is executed with a single GPU with the setting of `harness_config.device_count = 1`.( This is also set by "DO NOT MODIFY" config in `offline_llama2_7b_gfx1201.yaml` )
 
-```bash
-export HIP_VISIBLE_DEVICES=<gpu_ids>
-export ROCR_VISIBLE_DEVICES=<gpu_ids>
-```
-
-The number of visible devices should match `harness_config.device_count`.
+Only results generated with `harness_config.device_count = 1` will be accepted for this task.
 
 ### Offline Performance
 
@@ -102,14 +97,11 @@ python /lab-mlperf-inference/code/llama2-70b-99/main.py \
    --config-path /lab-mlperf-inference/code/llama2-7b/harness_llm/models/llama2-7b/ \
    --config-name offline_llama2_7b_gfx1201 \
    test_mode=performance \
-   harness_config.device_count=<device_count> \
    harness_config.output_log_dir=<output_log_dir>
 ```
 
 ### Notes
 
-You may adjust execution-related values as needed for different test setups, including `harness_config.output_log_dir`, `harness_config.device_count`, visible GPU devices, and so on.
+You may adjust execution-related values as needed for different test setups, including `harness_config.output_log_dir`, config and so on.
 
-When changing the GPU configuration, make sure the number of visible GPU devices matches `harness_config.device_count`.
-
-For fair comparison, keep workload-related settings such as **the model, dataset, scenario, sample count, and target QPS** consistent unless the experiment explicitly requires otherwise.
+For fair comparison, keep workload-related settings such as **the model, dataset, scenario, sample count, and target QPS ...** consistent unless the experiment explicitly requires otherwise.
