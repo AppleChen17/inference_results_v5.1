@@ -1,3 +1,38 @@
+import os
+
+# Normalize visible-device env before importing vLLM.
+# vLLM ROCm asserts HIP_VISIBLE_DEVICES == CUDA_VISIBLE_DEVICES if both exist.
+#
+# HIP_VISIBLE_DEVICES is treated as authoritative because MLPerf/vLLM workers
+# may set it to a worker-local single GPU such as "0", "1", or "2".
+_hip_visible = os.environ.get("HIP_VISIBLE_DEVICES")
+_cuda_visible = os.environ.get("CUDA_VISIBLE_DEVICES")
+
+if _hip_visible:
+    if _cuda_visible != _hip_visible:
+        print(
+            "[WARN] Normalize CUDA_VISIBLE_DEVICES before vLLM import:",
+            f"HIP_VISIBLE_DEVICES={_hip_visible!r}",
+            f"CUDA_VISIBLE_DEVICES={_cuda_visible!r}",
+        )
+        os.environ["CUDA_VISIBLE_DEVICES"] = _hip_visible
+
+    if not os.environ.get("ROCR_VISIBLE_DEVICES"):
+        os.environ["ROCR_VISIBLE_DEVICES"] = _hip_visible
+    if not os.environ.get("GPU_DEVICE_ORDINAL"):
+        os.environ["GPU_DEVICE_ORDINAL"] = _hip_visible
+
+elif _cuda_visible:
+    print(
+        "[WARN] Set HIP_VISIBLE_DEVICES from CUDA_VISIBLE_DEVICES before vLLM import:",
+        f"CUDA_VISIBLE_DEVICES={_cuda_visible!r}",
+    )
+    os.environ["HIP_VISIBLE_DEVICES"] = _cuda_visible
+    if not os.environ.get("ROCR_VISIBLE_DEVICES"):
+        os.environ["ROCR_VISIBLE_DEVICES"] = _cuda_visible
+    if not os.environ.get("GPU_DEVICE_ORDINAL"):
+        os.environ["GPU_DEVICE_ORDINAL"] = _cuda_visible
+
 from vllm import LLM, SamplingParams, AsyncLLMEngine, AsyncEngineArgs
 import logging
 import multiprocessing as mp
@@ -56,7 +91,10 @@ def initialize_engine_and_generate(
     use_async_engine = (engine_version == "async")
 
     for id in device_ids:
-        nh.set_affinity_by_device(int(id))
+        try:
+            nh.set_affinity_by_device(int(id))
+        except Exception as e:
+            print(f"[WARN] failed to set NUMA affinity for device {id}: {e}")
 
     # Initialize the vllm engine.
     llm = create_engine(llm_config = llm_config, async_engine = use_async_engine)

@@ -78,6 +78,12 @@ For this task, only 1 GPU may be used for the submitted result. Therefore, pleas
 Only results generated with `harness_config.device_count = 1` will be accepted for this task.
 
 ### Offline Performance
+**Check that the python that you are using in the apptainer is python 3.12**
+
+```bash
+Apptainer> python -V
+Python 3.12.10
+```
 
 Reference command:
 
@@ -97,6 +103,7 @@ python /lab-mlperf-inference/code/llama2-70b-99/main.py \
    --config-path /lab-mlperf-inference/code/llama2-7b/harness_llm/models/llama2-7b/ \
    --config-name offline_llama2_7b_gfx1201 \
    test_mode=performance \
+   harness_config.device_count=1 \
    harness_config.output_log_dir=<output_log_dir>
 ```
 

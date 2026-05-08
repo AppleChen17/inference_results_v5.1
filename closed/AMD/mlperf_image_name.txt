@@ -1,1 +1,0 @@
-rocm/mlperf-inference:nightly_0610_rc2_0610_rc2_20250605__h-5ea4f62e_v-71faa1880_v-cl_gfx1201

@@ -1,3 +1,0 @@
-The model path is NOT matching with the default settings 
-  default: /model/llama2-70b-chat-hf/fp4_quantized, /model/llama2-70b-chat-hf/fp8_quantized 
-  current: /model/llama2-7b-chat-hf/orig
