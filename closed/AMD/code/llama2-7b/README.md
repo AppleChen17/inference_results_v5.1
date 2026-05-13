@@ -41,14 +41,6 @@ Exit this docker container after the model and dataset preparation is complete, 
 
 ## Inference
 
-### Runtime tunables
-
-To boost the machine's performance further, execute the following script before any performance test. This only needs to be set once after a reboot.
-
-```bash
-bash setup/runtime_tunables.sh
-```
-
 ### Appatainer
 
 Set the image name for the benchmark.
