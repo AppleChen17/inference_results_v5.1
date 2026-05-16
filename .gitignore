@@ -1,2 +1,10 @@
 *.sif
 logs/
+
+closed/AMD/results/
+
+closed/AMD/mlperf_apptainer_image_name.txt
+closed/AMD/mlperf_image_name.txt
+
+__pycache__/
+*.pyc
